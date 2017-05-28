@@ -75,8 +75,8 @@ create-fullchain-privkey-pem-for-{{ setname }}:
 link-by-setname-{{ setname }}:
   cmd.run:
     - name: |
-      mkdir -p /etc/letsencrypt/setnames/{{ setname }} &&
-      chmod 0700 /etc/letsencrypt/setnames/{{ setname }} &&
+      mkdir -p /etc/letsencrypt/setnames/{{ setname }} && \
+      chmod 0700 /etc/letsencrypt/setnames/{{ setname }} && \
       ln -sf /etc/letsencrypt/live/{{ domainlist[0] }}/* /etc/letsencrypt/setnames/{{ setname }}/
     - creates: /etc/letsencrypt/setnames/{{ setname }}/fullchain-privkey.pem 
     - require:
