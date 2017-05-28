@@ -10,9 +10,7 @@
     - contents: |
         #!/bin/bash
 
-        SETNAME=$1
-	CERT_NAME=$2
-        shift
+        CERT_NAME=$1
 
         for DOMAIN in "$@"
         do
