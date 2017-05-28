@@ -10,13 +10,14 @@
     - contents: |
         #!/bin/bash
 
-        FIRST_CERT=$1
+        SETNAME=$1
+        shift
 
         for DOMAIN in "$@"
         do
-            openssl x509 -in /etc/letsencrypt/live/$1/cert.pem -noout -text | grep DNS:${DOMAIN} > /dev/null || exit 1
+            openssl x509 -in /etc/letsencrypt/live/${SETNAME}/cert.pem -noout -text | grep DNS:${DOMAIN} > /dev/null || exit 1
         done
-        CERT=$(date -d "$(openssl x509 -in /etc/letsencrypt/live/$1/cert.pem -enddate -noout | cut -d'=' -f2)" "+%s")
+        CERT=$(date -d "$(openssl x509 -in /etc/letsencrypt/live/${SETNAME}/cert.pem -enddate -noout | cut -d'=' -f2)" "+%s")
         CURRENT=$(date "+%s")
         REMAINING=$((($CERT - $CURRENT) / 60 / 60 / 24))
         [ "$REMAINING" -gt "30" ] || exit 1
@@ -36,9 +37,9 @@
   ).iteritems()
 %}
 
-create-initial-cert-{{ setname }}-{{ domainlist | join('+') }}:
+create-initial-cert-{{ setname }}:
   cmd.run:
-    - unless: /usr/local/bin/check_letsencrypt_cert.sh {{ domainlist|join(' ') }}
+    - unless: /usr/local/bin/check_letsencrypt_cert.sh {{ setname }} {{ domainlist|join(' ') }}
     - name: {{
           letsencrypt.cli_install_dir
         }}/letsencrypt-auto -d {{ domainlist|join(' -d ') }} certonly
@@ -49,27 +50,27 @@ create-initial-cert-{{ setname }}-{{ domainlist | join('+') }}:
 
 # domainlist[0] represents the "CommonName", and the rest
 # represent SubjectAlternativeNames
-letsencrypt-crontab-{{ setname }}-{{ domainlist[0] }}:
+letsencrypt-crontab-{{ setname }}:
   cron.present:
-    - name: /usr/local/bin/renew_letsencrypt_cert.sh {{ domainlist|join(' ') }}
+    - name: /usr/local/bin/renew_letsencrypt_cert.sh {{ setname }} {{ domainlist|join(' ') }}
     - month: '*'
     - minute: random
     - hour: random
     - dayweek: '*'
-    - identifier: letsencrypt-{{ setname }}-{{ domainlist[0] }}
+    - identifier: letsencrypt-{{ setname }}
     - require:
-      - cmd: create-initial-cert-{{ setname }}-{{ domainlist | join('+') }}
+      - cmd: create-initial-cert-{{ setname }}
       - file: /usr/local/bin/renew_letsencrypt_cert.sh
 
-create-fullchain-privkey-pem-for-{{ domainlist[0] }}:
+create-fullchain-privkey-pem-for-{{ setname }}:
   cmd.run:
     - name: |
-        cat /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain.pem \
-            /etc/letsencrypt/live/{{ domainlist[0] }}/privkey.pem \
-            > /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain-privkey.pem && \
-        chmod 600 /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain-privkey.pem
-    - creates: /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain-privkey.pem
+        cat /etc/letsencrypt/live/{{ setname }}/fullchain.pem \
+            /etc/letsencrypt/live/{{ setname }}/privkey.pem \
+            > /etc/letsencrypt/live/{{ setname }}/fullchain-privkey.pem && \
+        chmod 600 /etc/letsencrypt/live/{{ setname }}/fullchain-privkey.pem
+    - creates: /etc/letsencrypt/live/{{ setname }}/fullchain-privkey.pem
     - require:
-      - cmd: create-initial-cert-{{ setname }}-{{ domainlist | join('+') }}
+      - cmd: create-initial-cert-{{ setname }}
 
 {% endfor %}

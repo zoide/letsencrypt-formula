@@ -1,6 +1,8 @@
 #!/bin/bash
 {% from "letsencrypt/map.jinja" import letsencrypt with context %}
-COMMON_NAME="$1"
+
+SETNAME="$1"
+shift
 
 JOINED=""
 for DOMAIN in "$@"
@@ -11,8 +13,8 @@ done
 if ! /usr/local/bin/check_letsencrypt_cert.sh "$@" > /dev/null
 then
     {{ letsencrypt.cli_install_dir }}/letsencrypt-auto certonly $JOINED || exit 1
-    cat /etc/letsencrypt/live/${COMMON_NAME}/fullchain.pem \
-        /etc/letsencrypt/live/${COMMON_NAME}/privkey.pem \
-        > /etc/letsencrypt/live/${COMMON_NAME}/fullchain-privkey.pem || exit 1
-    chmod 600 /etc/letsencrypt/live/${COMMON_NAME}/fullchain-privkey.pem || exit 1
+    cat /etc/letsencrypt/live/${SETNAME}/fullchain.pem \
+        /etc/letsencrypt/live/${SETNAME}/privkey.pem \
+        > /etc/letsencrypt/live/${SETNAME}/fullchain-privkey.pem || exit 1
+    chmod 600 /etc/letsencrypt/live/${SETNAME}/fullchain-privkey.pem || exit 1
 fi
