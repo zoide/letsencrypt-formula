@@ -38,7 +38,7 @@
 
 create-initial-cert-{{ setname }}:
   cmd.run:
-    - unless: /usr/local/bin/check_letsencrypt_cert.sh {{ setname }} {{ domainlist|join(' ') }}
+    - unless: /usr/local/bin/check_letsencrypt_cert.sh {{ domainlist|join(' ') }}
     - name: {{
           letsencrypt.cli_install_dir
         }}/certbot-auto -d {{ domainlist|join(' -d ') }} certonly
@@ -51,7 +51,7 @@ create-initial-cert-{{ setname }}:
 # represent SubjectAlternativeNames
 letsencrypt-crontab-{{ setname }}:
   cron.present:
-    - name: /usr/local/bin/renew_letsencrypt_cert.sh {{ setname }} {{ domainlist|join(' ') }}
+    - name: /usr/local/bin/renew_letsencrypt_cert.sh {{ domainlist|join(' ') }}
     - month: '*'
     - minute: random
     - hour: random
