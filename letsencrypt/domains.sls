@@ -11,13 +11,14 @@
         #!/bin/bash
 
         SETNAME=$1
+	CERT_NAME=$2
         shift
 
         for DOMAIN in "$@"
         do
-            openssl x509 -in /etc/letsencrypt/live/${SETNAME}/cert.pem -noout -text | grep DNS:${DOMAIN} > /dev/null || exit 1
+            openssl x509 -in /etc/letsencrypt/live/${CERT_NAME}/cert.pem -noout -text | grep DNS:${DOMAIN} > /dev/null || exit 1
         done
-        CERT=$(date -d "$(openssl x509 -in /etc/letsencrypt/live/${SETNAME}/cert.pem -enddate -noout | cut -d'=' -f2)" "+%s")
+        CERT=$(date -d "$(openssl x509 -in /etc/letsencrypt/live/${CERT_NAME}/cert.pem -enddate -noout | cut -d'=' -f2)" "+%s")
         CURRENT=$(date "+%s")
         REMAINING=$((($CERT - $CURRENT) / 60 / 60 / 24))
         [ "$REMAINING" -gt "30" ] || exit 1
@@ -65,12 +66,22 @@ letsencrypt-crontab-{{ setname }}:
 create-fullchain-privkey-pem-for-{{ setname }}:
   cmd.run:
     - name: |
-        cat /etc/letsencrypt/live/{{ setname }}/fullchain.pem \
-            /etc/letsencrypt/live/{{ setname }}/privkey.pem \
-            > /etc/letsencrypt/live/{{ setname }}/fullchain-privkey.pem && \
-        chmod 600 /etc/letsencrypt/live/{{ setname }}/fullchain-privkey.pem
-    - creates: /etc/letsencrypt/live/{{ setname }}/fullchain-privkey.pem
+        cat /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain.pem \
+            /etc/letsencrypt/live/{{ domainlist[0] }}/privkey.pem \
+            > /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain-privkey.pem && \
+        chmod 600 /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain-privkey.pem
+    - creates: /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain-privkey.pem
     - require:
       - cmd: create-initial-cert-{{ setname }}
+
+link-by-setname-{{ setname }}:
+  cmd.run:
+    - name: |
+      mkdir -p /etc/letsencrypt/setnames/{{ setname }}
+      chmod 0700 /etc/letsencrypt/setnames/{{ setname }}
+      ln -s /etc/letsencrypt/live/{{ domainlist[0] }}/* /etc/letsencrypt/setnames/{{ setname }}/
+    - creates: /etc/letsencrypt/setnames/{{ setname }}/fullchain-privkey.pem
+    - require:
+      - cmd: create-fullchain-privkey-pem-for-{{ setname }}
 
 {% endfor %}
