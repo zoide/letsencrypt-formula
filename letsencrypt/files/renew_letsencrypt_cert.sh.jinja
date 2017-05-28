@@ -10,9 +10,9 @@ do
     JOINED+=" -d $DOMAIN"
 done
 
-if ! /usr/local/bin/check_letsencrypt_cert.sh "$@" > /dev/null
+if ! /usr/local/bin/check_letsencrypt_cert.sh ${SETNAME} "$@" > /dev/null
 then
-    {{ letsencrypt.cli_install_dir }}/letsencrypt-auto certonly $JOINED || exit 1
+    {{ letsencrypt.cli_install_dir }}/certbot-auto certonly $JOINED || exit 1
     cat /etc/letsencrypt/live/${SETNAME}/fullchain.pem \
         /etc/letsencrypt/live/${SETNAME}/privkey.pem \
         > /etc/letsencrypt/live/${SETNAME}/fullchain-privkey.pem || exit 1
