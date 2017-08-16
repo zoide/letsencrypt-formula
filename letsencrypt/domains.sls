@@ -16,6 +16,7 @@
         do
             openssl x509 -in /etc/letsencrypt/live/${CERT_NAME}/cert.pem -noout -text | grep DNS:${DOMAIN} > /dev/null || exit 1
         done
+        [ -n "$CMD" ] && [  "$CMD" == "exists" ] && exit 0 #check only for existence
         CERT=$(date -d "$(openssl x509 -in /etc/letsencrypt/live/${CERT_NAME}/cert.pem -enddate -noout | cut -d'=' -f2)" "+%s")
         CURRENT=$(date "+%s")
         REMAINING=$((($CERT - $CURRENT) / 60 / 60 / 24))
@@ -38,7 +39,7 @@
 
 create-initial-cert-{{ setname }}:
   cmd.run:
-    - unless: /usr/local/bin/check_letsencrypt_cert.sh {{ domainlist|join(' ') }}
+    - unless: /usr/local/bin/check_letsencrypt_cert.sh {{ domainlist|join(' ') }} CMD=exists
     - name: {{
           letsencrypt.cli_install_dir
         }}/certbot-auto -d {{ domainlist|join(' -d ') }} certonly
