@@ -55,7 +55,7 @@ letsencrypt-crontab-{{ setname }}:
     - month: '*'
     - minute: random
     - hour: random
-    - dayweek: '*'
+    - dayweek: '*/3'
     - identifier: letsencrypt-{{ setname }}
     - require:
       - cmd: create-initial-cert-{{ setname }}
