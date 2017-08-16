@@ -39,7 +39,7 @@
 
 create-initial-cert-{{ setname }}:
   cmd.run:
-    - unless: /usr/local/bin/check_letsencrypt_cert.sh {{ domainlist|join(' ') }} CMD=exists
+    - unless: CMD=exists /usr/local/bin/check_letsencrypt_cert.sh {{ domainlist|join(' ') }}
     - name: {{
           letsencrypt.cli_install_dir
         }}/certbot-auto -d {{ domainlist|join(' -d ') }} certonly
