@@ -80,7 +80,7 @@ link-by-setname-{{ setname }}:
         chmod 0700 /etc/letsencrypt/setnames/{{ setname }} && \
         ln -sf /etc/letsencrypt/live/{{ domainlist[0] }}/* /etc/letsencrypt/setnames/{{ setname }}/
         #- creates: /etc/letsencrypt/setnames/{{ setname }}/fullchain-privkey.pem 
-    - unless: est $(md5sum /etc/letsencrypt/setnames/{{ setname}}/fullchain.pem | cut -f 1 -d ' ') == $(md5sum /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain.pem| cut -f 1 -d ' ')
+    - unless: test $(md5sum /etc/letsencrypt/setnames/{{ setname}}/fullchain.pem | cut -f 1 -d ' ') == $(md5sum /etc/letsencrypt/live/{{ domainlist[0] }}/fullchain.pem| cut -f 1 -d ' ')
     - require:
       - cmd: create-fullchain-privkey-pem-for-{{ setname }}
 
